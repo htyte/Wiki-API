@@ -21,41 +21,103 @@ const articleSchema = new mongoose.Schema({
 
 const Article = new mongoose.model('Article', articleSchema);
 
-app.get('/articles', function(req, res) {
-    Article.find({}, function(err, results) {
-        if(err) {
-            console.log(err)
-        } else {
-            res.send(results)
-        }
+app.route('/articles')
+    .get(function(req,res) {
+        Article.find({}, function(err, results) {
+            if(err) {
+                console.log(err)
+            } else {
+                res.send(results)
+            }
+        })
     })
-})
-
-app.post('/articles', function(req,res) {
-    const newTitle = req.body.title; 
-    const newContent = req.body.content;
-    const newArticle = new Article({
-        title: newTitle,
-        content: newContent
+    .post(function(req,res) {
+        const newTitle = req.body.title; 
+        const newContent = req.body.content;
+        const newArticle = new Article({
+            title: newTitle,
+            content: newContent
+        })
+        newArticle.save(function(err, result) {
+            if(!err) {
+                res.send('Successfully added')     
+            } else {r
+                res.send(err)
+            }
+        });
     })
-    newArticle.save(function(err, result) {
-        if(!err) {
-            res.send('Successfully added')     
-        } else {r
-            res.send(err)
-        }
+    .delete(function(req,res) {
+        Article.deleteMany({}, function(err) {
+            if(!err) {
+                res.send("successfully deleted");
+            } else {
+                res.send(err);
+            }
+        })
     });
-    // res.render('article', {title: result.title, content: result.content})
-   
-})
 
-app.get('/article', function(req, res) {
-    res.render('article')
-})
+app.route('/articles/:articleTitle')
+    .get(function(req, res) {
+        Article.findOne({title: req.params.articleTitle}, function(err, result) {
+            if(!err) {
+                console.log(result)
+                res.send('Found It')
+            } else {
+                res.send(err)
+            }
+        })
+        
+    })
+    .put(function(req,res) {
+        Article.update(
+            {title: req.params.articleTitle}, 
+            {title: req.body.title, 
+            content: req.body.content}, 
+            {overwrite: true}, 
+            function(err, result) {
+                if(!err) {
+                    res.send("successfully updated article")
+                } else {
+                    res.send(err);
+                }
+        })
+    })
+    .patch(function(req,res) {
+        Article.updateOne(
+            {title: req.params.articleTitle}, 
+            {$set: req.body},
+            function(err) {
+                if(!err) {
+                    res.send("Successfully updated article");
+                } else {
+                    res.send(err)
+                }
+            }
+        )
+    })
+    .delete(function (req,res) {
+        // Article.findOne({title: req.params.articleTitle}, function(err, result) {
+        //     if(!err) {
+        //         Article.findByIdAndDelete({_id: result._id}, function(err) {
+        //             if(!err) {
+        //                 res.send("Successfully deleted")
+        //             } else {
+        //                 res.send(err)
+        //             }
+        //         })
+        //     } else {
+        //         res.send(err)
+        //     }
+        // })
+        Article.deleteOne({title: req.params.articleTitle}, function(err) {
+            if(!err) {
+                res.send("Succesfully deleted article");
+            } else {
+                res.send(err)
+            }
+        })
+    });
 
-app.get('/articles/:id', function(req, res) {
-
-})
 
 
 
